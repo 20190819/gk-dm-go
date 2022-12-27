@@ -1,4 +1,4 @@
-package demo
+package reflect
 
 import (
 	"errors"
