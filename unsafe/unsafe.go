@@ -97,7 +97,8 @@ func (u *UfAccessor) SetFieldValAny(field string, val int) error {
 		return u.errNotFound()
 	}
 	fMeta := u.fields[field]
-	ufp := reflect.NewAt(fMeta.typ, unsafe.Pointer(uintptr(u.entityAddr)+fMeta.offset))
+	// https://zhuanlan.zhihu.com/p/326267989
+	ufp := reflect.NewAt(fMeta.typ, unsafe.Pointer(uintptr(u.entityAddr)+fMeta.offset)).Elem()
 	if ufp.CanSet() {
 		ufp.Set(reflect.ValueOf(val))
 	}

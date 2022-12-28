@@ -18,8 +18,9 @@ type User struct {
 	Age int
 }
 
-func TestUfAccessor_GetFieldVal(t *testing.T) {
-	tests := []testCaseItemUnSafe{
+func TestUfAccessorGetFieldVal(t *testing.T) {
+
+	testCases := []testCaseItemUnSafe{
 		{
 			name:    "invalid-field",
 			entity:  &User{Age: 18},
@@ -34,7 +35,7 @@ func TestUfAccessor_GetFieldVal(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tests {
+	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			accessor, err := NewUfAccessor(tc.entity)
 			if err != nil {
@@ -47,6 +48,77 @@ func TestUfAccessor_GetFieldVal(t *testing.T) {
 				return
 			}
 			assert.Equal(t, tc.wantVal, val)
+		})
+	}
+}
+
+type ufAccessorTestCaseItem struct {
+	name    string
+	entity  *User
+	field   string
+	newVal  int
+	wantErr error
+}
+
+func TestUnsafeAccessorSetFieldVal(t *testing.T) {
+
+	testCases := []ufAccessorTestCaseItem{
+		{
+			name:    "not found case",
+			entity:  &User{},
+			field:   "Age1",
+			newVal:  20,
+			wantErr: errors.New("field not found"),
+		},
+		{
+			name:   "normal case",
+			entity: &User{},
+			field:  "Age",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			accessor, err := NewUfAccessor(tc.entity)
+			if err != nil {
+				assert.Equal(t, tc.wantErr, err)
+				return
+			}
+
+			err = accessor.SetFieldVal(tc.field, tc.newVal)
+			assert.Equal(t, tc.wantErr, err)
+			if err != nil {
+				return
+			}
+			assert.Equal(t, tc.newVal, tc.entity.Age)
+		})
+	}
+}
+
+func TestUnsafeAccessorSetFieldValAny(t *testing.T) {
+	testCases := []ufAccessorTestCaseItem{
+		{
+			name:   "normal case",
+			entity: &User{},
+			field:  "Age",
+			newVal: 18,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			accessor, err := NewUfAccessor(tc.entity)
+			if err != nil {
+				assert.Equal(t, tc.wantErr, err)
+				return
+			}
+
+			err = accessor.SetFieldValAny(tc.field, tc.newVal)
+			assert.Equal(t, tc.wantErr, err)
+			if err != nil {
+				return
+			}
+			assert.Equal(t, tc.newVal, tc.entity.Age)
 		})
 	}
 }
