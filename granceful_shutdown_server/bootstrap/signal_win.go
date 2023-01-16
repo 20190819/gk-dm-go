@@ -1,11 +1,11 @@
-package service
+package bootstrap
 
 import (
 	"os"
 	"syscall"
 )
 
-var signalWindows = []os.Signal{
+var SignalWin = []os.Signal{
 	os.Interrupt,
 	os.Kill,
 
