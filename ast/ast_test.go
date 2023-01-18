@@ -15,6 +15,7 @@ import (
 	"go/ast"
 	"reflect"
 )
+
 // printVisitor 访问器模式
 type printVisitor struct {
 }
@@ -38,7 +39,7 @@ func (t *printVisitor) Visit(node ast.Node) (w ast.Visitor) {
 
 func TestAst(t *testing.T) {
 	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, "src.go", srcContent, parser.ParseComments)
+	f, err := parser.ParseFile(fset, "", srcContent, parser.ParseComments)
 	if err != nil {
 		t.Fatal(err)
 	}
