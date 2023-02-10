@@ -6,7 +6,7 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"time"
+	"os"
 )
 
 type HandleFunc func(ctx *context.Context)
@@ -14,7 +14,7 @@ type HandleFunc func(ctx *context.Context)
 type Server interface {
 	http.Handler
 	Start(addr string) error
-	addRoute(method, path string, handler HandleFunc)
+	AddRoute(method, path string, handler HandleFunc)
 }
 
 type HTTPServer struct {
@@ -25,15 +25,28 @@ type HTTPServer struct {
 
 type Context struct {
 	Req    *http.Request
-	Writer http.ResponseWriter
+	Resp   http.ResponseWriter
+	Params map[string]string
 }
 
 func (s *HTTPServer) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	ctx := &Context{
+		Req:    request,
+		Resp:   writer,
+		Params: make(map[string]string),
+	}
 
+	s.Next(ctx)
 }
 
-func (s *HTTPServer) addRoute(method, path string, handler HandleFunc) {
-	//
+func (s *HTTPServer) Next(ctx *Context) {
+	// 找路由
+
+	// 执行业务逻辑
+}
+
+func (s *HTTPServer) AddRoute(method, path string, handler HandleFunc) {
+	s.addRoute(method, path, handler)
 }
 
 func (s *HTTPServer) Start(addr string) error {
@@ -56,25 +69,19 @@ func (s *HTTPServer) Start(addr string) error {
 
 }
 
-func Start(addr string) {
+func StartWeb(addr string) {
 	var s Server = &HTTPServer{}
-	var h1 HandleFunc = func(ctx *context.Context) {
-		fmt.Println("step 1 ")
-		time.Sleep(time.Second)
-	}
 
-	var h2 HandleFunc = func(ctx *context.Context) {
-		fmt.Println("step 2 ")
-		time.Sleep(time.Second)
-	}
-
-	s.addRoute(http.MethodPost, "/user", func(ctx *context.Context) {
-		h1(ctx)
-		h2(ctx)
+	s.AddRoute(http.MethodGet, "/user", func(ctx *context.Context) {
+		fmt.Println("/user")
+	})
+	s.AddRoute(http.MethodGet, "/order/*", func(ctx *context.Context) {
+		fmt.Println("/orders/*")
 	})
 
 	err := s.Start(addr)
 	if err != nil {
-		panic("http server start failed")
+		fmt.Println(err.Error())
+		os.Exit(-1)
 	}
 }

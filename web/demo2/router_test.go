@@ -40,6 +40,14 @@ func Test_router_addRoute(t *testing.T) {
 			method: http.MethodPost,
 			path:   "/order/cancel",
 		},
+		{
+			method: http.MethodPost,
+			path:   "/order/*",
+		},
+		{
+			method: http.MethodPost,
+			path:   "/order/detail/:order_sn",
+		},
 	}
 
 	var exceptRouter *router = &router{
@@ -77,8 +85,22 @@ func Test_router_addRoute(t *testing.T) {
 				Children: map[string]*node{
 					"order": &node{
 						path: "order",
+						StarNode: &node{
+							path:    "*",
+							handler: myHandleFunc,
+						},
 						Children: map[string]*node{
-							"cancel": &node{path: "cancel", handler: myHandleFunc},
+							"cancel": &node{
+								path:    "cancel",
+								handler: myHandleFunc,
+							},
+							"detail": &node{
+								path: "detail",
+								ParamsChild: &node{
+									path:    ":order_sn",
+									handler: myHandleFunc,
+								},
+							},
 						},
 					},
 				},
@@ -154,4 +176,33 @@ func (n *node) nodeEqual(ans *node) (string, bool) {
 		}
 	}
 	return "", true
+}
+
+func Test_router_findRoute(t *testing.T) {
+	type fields struct {
+		tree map[string]*node
+	}
+	type args struct {
+		method string
+		path   string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   *matchInfo
+		want1  bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &router{
+				tree: tt.fields.tree,
+			}
+			got, got1 := r.findRoute(tt.args.method, tt.args.path)
+			assert.Equalf(t, tt.want, got, "findRoute(%v, %v)", tt.args.method, tt.args.path)
+			assert.Equalf(t, tt.want1, got1, "findRoute(%v, %v)", tt.args.method, tt.args.path)
+		})
+	}
 }
