@@ -38,11 +38,11 @@ func Test_router_addRoute(t *testing.T) {
 		},
 		{
 			method: http.MethodPost,
-			path:   "/order/cancel",
+			path:   "/order/*",
 		},
 		{
 			method: http.MethodPost,
-			path:   "/order/*",
+			path:   "/order/cancel",
 		},
 		{
 			method: http.MethodPost,
@@ -114,6 +114,75 @@ func Test_router_addRoute(t *testing.T) {
 
 	resMsg, ok := wantRouter.myEqual(exceptRouter)
 	assert.True(t, ok, resMsg) // 测试-断言
+
+	findCases := []struct {
+		name   string
+		method string
+		path   string
+
+		found      bool
+		wantPath   string
+		hasHandler bool
+	}{
+		{
+			method:     http.MethodGet,
+			name:       "/",
+			path:       "/",
+			wantPath:   "/",
+			found:      true,
+			hasHandler: true,
+		},
+		{
+			method:     http.MethodGet,
+			name:       "/user",
+			path:       "/user",
+			wantPath:   "user",
+			found:      true,
+			hasHandler: true,
+		},
+		{
+			method:     http.MethodGet,
+			name:       "/user/detail",
+			path:       "/user/detail",
+			wantPath:   "detail",
+			found:      true,
+			hasHandler: false,
+		},
+		{
+			method:     http.MethodGet,
+			name:       "/user/detail/profile",
+			path:       "/user/detail/profile",
+			wantPath:   "profile",
+			found:      true,
+			hasHandler: true,
+		},
+		{
+			method:     http.MethodPost,
+			name:       "/order/*",
+			path:       "/order/abc",
+			wantPath:   "*",
+			found:      true,
+			hasHandler: true,
+		},
+		{
+			method:     http.MethodPost,
+			name:       "/order/:xxx",
+			path:       "/order/detail/:order_sn",
+			wantPath:   ":order_sn",
+			found:      true,
+			hasHandler: true,
+		},
+	}
+	for _, caseItem := range findCases {
+		t.Run(caseItem.name, func(t *testing.T) {
+			r, ok := exceptRouter.findRoute(caseItem.method, caseItem.path)
+			assert.Equal(t, caseItem.found, ok)
+			if ok {
+				assert.Equal(t, caseItem.wantPath, r.n.path)
+				assert.Equal(t, caseItem.hasHandler, r.n.handler != nil)
+			}
+		})
+	}
 }
 
 func (r *router) myEqual(except *router) (string, bool) {
@@ -176,33 +245,4 @@ func (n *node) nodeEqual(ans *node) (string, bool) {
 		}
 	}
 	return "", true
-}
-
-func Test_router_findRoute(t *testing.T) {
-	type fields struct {
-		tree map[string]*node
-	}
-	type args struct {
-		method string
-		path   string
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   *matchInfo
-		want1  bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			r := &router{
-				tree: tt.fields.tree,
-			}
-			got, got1 := r.findRoute(tt.args.method, tt.args.path)
-			assert.Equalf(t, tt.want, got, "findRoute(%v, %v)", tt.args.method, tt.args.path)
-			assert.Equalf(t, tt.want1, got1, "findRoute(%v, %v)", tt.args.method, tt.args.path)
-		})
-	}
 }

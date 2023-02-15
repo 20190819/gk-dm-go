@@ -33,6 +33,7 @@ func (r *router) addRoute(method, path string, handle HandleFunc) {
 			rootCopy = rootCopy.childOrCreate(seg)
 		}
 	}
+	rootCopy.handler = handle
 }
 
 func (r *router) findRoute(method string, path string) (*matchInfo, bool) {
